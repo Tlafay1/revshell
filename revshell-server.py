@@ -19,7 +19,6 @@ class WebcamStream:
 		self.client_socket = client_socket
 
 	def receive(self):
-		print("Starting receiving")
 		data = b""
 		payload_size = struct.calcsize("Q")
 		while True:

