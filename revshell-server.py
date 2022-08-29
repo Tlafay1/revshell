@@ -9,6 +9,7 @@ import imutils
 import socket
 import zlib
 import pygame
+import time
 
 # Intended to read any buffer size soon
 BUFFER_SIZE = 1024 * 128
@@ -51,22 +52,23 @@ class Shell:
 		self.client_socket = client_socket
 
 	def start(self):
+		cmd = ''
 		while(True):
-			out = self.client_socket.recv(BUFFER_SIZE).decode().strip()
-			sys.stdout.write(out)
+			out = self.client_socket.recv(BUFFER_SIZE).decode()
+			if cmd:
+				sys.stdout.write(out.replace(cmd, ''))
+			else:
+				sys.stdout.write(out)
 			try:
-				cmd = input("")
+				cmd = input() + '\n'
 			except EOFError:
 				print("")
 				return
-			cmd += '\n'
-			# if not cmd:
-			# 	continue
-			if cmd == 'exit':
-				return
 			self.client_socket.send(cmd.encode())
-			sys.stdout.write("\033[A" + cmd.split("\n")[-1])
-			# pass
+			if cmd == 'exit\n':
+				return
+			time.sleep(0.01)
+			# sys.stdout.write("\033[A" + cmd.split("\n")[-1])
 
 class ScreenStream:
 
