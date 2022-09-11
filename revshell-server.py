@@ -144,6 +144,13 @@ class Shell:
 # 			sock.close()
 
 
+class Server:
+	def __init__(self, port):
+		try:
+			port = int(port)
+		except ValueError:
+			print("The given port is not a number.\nUsage: python3 revshell-server.py <port>")
+			exit(1)
 
 def main_loop(client_socket):
 	while True:
@@ -182,6 +189,7 @@ def main_loop(client_socket):
 
 def sigIntHandler(signum, frame):
 	print("\nrevshell> ", end="")
+
 
 def main(PORT):
 	HOST = '0.0.0.0'
