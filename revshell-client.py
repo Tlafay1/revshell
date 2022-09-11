@@ -11,6 +11,8 @@ import platform
 import time
 import threading
 
+BUFFER_SIZE = 1024 * 128
+
 # Supposed to be a stable bash shell, works
 # on the client but not on the server
 
@@ -87,23 +89,21 @@ class FileTransfer:
 				file_size -= len(data)
 				self.s.send(data.encode())
 
-	def receive(self, file, recv_path):
-		splitted = self.client_socket.recv(BUFFER_SIZE).decode().split('\n', 1)
+	def receive(self, recv_path):
+		splitted = self.s.recv(BUFFER_SIZE).decode().split('\n', 1)
 		file_size = int(splitted[0])
 		if file_size == 0:
-			print(f"Could not open {file}")
+			print(f"Could not open file")
 			return
 		data = splitted[1]
 		with open(recv_path, 'w') as f:
 			while file_size > 0:
-				data = self.client_socket.recv(BUFFER_SIZE).decode()
+				data = self.s.recv(BUFFER_SIZE).decode()
 				file_size -= len(data)
 				f.write(data)
 
 
 def main(SERVER_HOST, SERVER_PORT):
-	BUFFER_SIZE = 1024 * 128
-
 	s = socket.socket()
 	s.connect((SERVER_HOST, SERVER_PORT))
 	while True:

