@@ -7,8 +7,8 @@ class Shell:
 	def __init__(self, server):
 		self.server = server
 
-	def start(self):
-		signal.signal(signal.SIGINT, signal.SIG_IGN)
+	def listener(self):
+		# signal.signal(signal.SIGINT, signal.SIG_IGN)
 		cmd = ''
 		while(True):
 			out = self.server.recv_raw(4096)
