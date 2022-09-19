@@ -1,5 +1,5 @@
 from client import Client
-from webcam import VideoStream
+# from webcam import VideoStream
 from transfer import FileTransfer
 import os
 import sys
