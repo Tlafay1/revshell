@@ -36,6 +36,18 @@ class Client:
 			Output.error("Failed to transfer data on socket.")
 			Output.error("The shell might be unstable !")
 
+	def send_bytes(self, msg):
+		msg = msg
+		if len(str(len(msg))) > HEAD:
+			Output.error("Message too long.")
+			Output.error("The last message hasn't been sent")
+		try:
+			self.send_header(len(msg))
+			self.s.sendall(msg)
+		except:
+			Output.error("Failed to transfer data on socket.")
+			Output.error("The shell might be unstable !")
+
 	def recvall(self, size):
 		ret = b''
 		while len(ret) < size:
@@ -46,28 +58,15 @@ class Client:
 		msg_size = int(self.recvall(HEAD))
 		return self.recvall(msg_size)
 
-	def send_file(self, file):
-		try:
-			file_size = os.stat(file).st_size
-		except FileNotFoundError:
-			msg_size = str(1).encode()
-			msg_size += b' ' * (HEAD - len(msg_size))
-			self.s.send('0'.encode())
-			return
-		self.s.send((str(file_size) + '\n').encode())
-		with open(file, 'r') as f:
-			while file_size > 0:
-				data = f.readline()
-				file_size -= len(data)
-				self.s.sendall(data.encode())
+	def recvall_bytes(self, size):
+		ret = b''
+		while len(ret) < size:
+			ret += self.s.recv(size)
+		return ret
 
-	def recv_file(self, path):
-		file_size = int(self.recvall(HEAD))
-		if file_size == 0:
-			return
-		with open(path, 'w') as f:
-			data = self.recvall(file_size)
-			f.write(data)
+	def recv_bytes(self):
+		msg_size = int(self.recvall_bytes(HEAD))
+		return self.recvall_bytes(msg_size)
 
 	def send_raw(self, msg):
 		self.s.sendall(msg.encode())

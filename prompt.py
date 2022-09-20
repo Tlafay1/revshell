@@ -4,6 +4,7 @@ import os
 class InteractivePrompt:
 
 	def __init__(self):
+		readline.set_completer_delims(readline.get_completer_delims().replace('~', ''))
 		self.commands = sorted(['shell', 'webcam', 'download', 'upload', 'exit'])
 		return
 
@@ -24,29 +25,26 @@ class InteractivePrompt:
 		full = readline.get_line_buffer()
 		return full[:idx]
 
-	# def get_current(self):
-	# 	return readline.get_line_buffer()[readline.get_begidx():readline.get_endidx()]
-
 	def complete(self, text, state):
-		# last_slash = text.rfind('/')
-		# if last_slash == -1:
-		# 	path = text
-		# else:
-		# 	path = text[:last_slash]
-		# 	text = text[last_slash + 1:]
-		# if text:
-		# 	server_files = os.listdir(path)
-		# else:
-		server_files = os.listdir('.')
-		if len(self.get_cur_before().split(" ")) <= 1:
-			results = [x + " " for x in self.commands if x.startswith(text)] + [None]
-		else:
-			results = [x + " " for x in server_files if x.startswith(text)] + [None]
+		buff_len = len(self.get_cur_before().split(" "))
+
+		match buff_len:
+			case 0:
+				results = [x + " " for x in self.commands if x.startswith(text)] + [None]
+			case 1:
+				results = [x + " " for x in self.commands if x.startswith(text)] + [None]
+			case 2:
+				current_path = self.get_cur_before().split(" ")[-1]
+				path = os.path.dirname(current_path) if os.path.dirname(current_path) else '.'
+				server_files = [os.path.basename(x) for x in os.listdir(path)]
+				server_files = [x + '/' if os.path.isdir(path + '/' + x) else x for x in server_files]
+				results = [x for x in server_files if x.startswith(text)] + [None]
+			case 3:
+				current_path = self.get_cur_before().split(" ")[-1]
+				path = os.path.dirname(current_path) if os.path.dirname(current_path) else '.'
+				server_files = [os.path.basename(x) for x in os.listdir(path)]
+				server_files = [x + '/' if os.path.isdir(path + '/' + x) else x for x in server_files]
+				results = [x for x in server_files if x.startswith(text)] + [None]
+			case _:
+				return None
 		return results[state]
-
-
-# if text:
-# 	text = text.substr(0, text.rfind('/'))
-# 	server_files = os.listdir(text)
-# else:
-# 	server_files = os.listdir('.')

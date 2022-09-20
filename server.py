@@ -42,6 +42,18 @@ class Server:
 			Output.error("Failed to transfer data on socket.")
 			Output.error("The shell might be unstable !")
 
+	def send_bytes(self, msg):
+		msg = msg
+		if len(str(len(msg))) > HEAD:
+			Output.error("Message too long.")
+			Output.error("The last message hasn't been sent")
+		try:
+			self.send_header(len(msg))
+			self.client_socket.sendall(msg)
+		except:
+			Output.error("Failed to transfer data on socket.")
+			Output.error("The shell might be unstable !")
+
 	def recvall(self, size):
 		ret = b''
 		while len(ret) < size:
@@ -51,6 +63,16 @@ class Server:
 	def recv(self):
 		msg_size = int(self.recvall(HEAD))
 		return self.recvall(msg_size)
+
+	def recvall_bytes(self, size):
+		ret = b''
+		while len(ret) < size:
+			ret += self.client_socket.recv(size)
+		return ret
+
+	def recv_bytes(self):
+		msg_size = int(self.recvall_bytes(HEAD))
+		return self.recvall_bytes(msg_size)
 
 	def send_raw(self, msg):
 		self.client_socket.sendall(msg.encode())

