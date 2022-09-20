@@ -1,14 +1,13 @@
 import struct
-# import cv2
 import pickle
 import imageio
 import matplotlib.pyplot as plt
-import numpy as np
 import time
+# import tkinter as tk, threading
+# from PIL import Image, ImageTk
 
-# Still not very stable, need a way to stop
-# that thing and handle exceptions in case client
-# SIGINTs
+# I got a cross-platform camera ! I still need to create a way to
+# stop the loop on 
 
 class Webcam:
 	def __init__(self, server):
@@ -19,11 +18,17 @@ class Webcam:
 			frame_data = self.server.recv_bytes()
 			self.server.send("received")
 			frame = pickle.loads(frame_data)
-			# if plt.get_fignums():
 			plt.imshow(frame)
 			plt.show(block=False)
 			plt.pause(1 / 30)
 			plt.close()
+			# root = tk.Tk()
+			# my_label = tk.Label(root)
+			# my_label.pack()
+			# thread = threading.Thread(target=stream, args=(my_label,))
+			# thread.daemon = 1
+			# thread.start()
+			# root.mainloop()
 
 # Capture video with webcam
 
@@ -41,10 +46,4 @@ class VideoStream:
 			received = self.client.recv()
 			time.sleep(1 / 30)
 		camera.close()
-
-		# while(1):
-			# img, frame = vid.read()
-			# a = pickle.dumps(frame)
-			# message = struct.pack("Q", len(a)) + a
-			# self.s.sendall(message)
 
