@@ -3,6 +3,7 @@ import pickle
 import imageio
 import matplotlib.pyplot as plt
 import time
+from outputs import Output
 # import tkinter as tk, threading
 # from PIL import Image, ImageTk
 
@@ -14,6 +15,10 @@ class Webcam:
 		self.server = server
 
 	def receive(self):
+		status = self.server.recv()
+		if status == "ABORT":
+			Output.error('No working camera found')
+			return
 		while True:
 			frame_data = self.server.recv_bytes()
 			self.server.send("received")
@@ -37,8 +42,12 @@ class VideoStream:
 		self.client = client
 
 	def send(self):
-		camera = imageio.get_reader("<video0>")
-		meta = camera.get_meta_data()
+		try:
+			camera = imageio.get_reader("<video0>")
+			self.client.send("OK")
+		except IndexError:
+			self.client.send("ABORT")
+			return
 		while True:
 			frame = camera.get_next_data()
 			a = pickle.dumps(frame)

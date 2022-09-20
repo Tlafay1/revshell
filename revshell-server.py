@@ -4,6 +4,7 @@ from webcam import Webcam
 from shell import Shell
 from transfer import FileTransfer
 from outputs import Output
+from recorder import Player
 import signal
 import sys
 import os
@@ -51,6 +52,9 @@ def main_loop(server):
 				Output.error(f"{args[0]}: File not found")
 			else:
 				Output.success(f"Successfully uploaded {args[0]}")
+		elif cmd == "record":
+			player = Player(server)
+			player.play()
 		elif cmd == "exit":
 			return
 		else:

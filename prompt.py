@@ -1,5 +1,6 @@
 import readline
 import os
+import re
 
 class InteractivePrompt:
 
@@ -26,7 +27,8 @@ class InteractivePrompt:
 		return full[:idx]
 
 	def complete(self, text, state):
-		buff_len = len(self.get_cur_before().split(" "))
+		pattern = r'(?<!\\) '
+		buff_len = len(re.split(pattern, self.get_cur_before()))
 
 		match buff_len:
 			case 0:
@@ -34,13 +36,13 @@ class InteractivePrompt:
 			case 1:
 				results = [x + " " for x in self.commands if x.startswith(text)] + [None]
 			case 2:
-				current_path = self.get_cur_before().split(" ")[-1]
+				current_path = re.split(pattern, self.get_cur_before())[-1]
 				path = os.path.dirname(current_path) if os.path.dirname(current_path) else '.'
 				server_files = [os.path.basename(x) for x in os.listdir(path)]
 				server_files = [x + '/' if os.path.isdir(path + '/' + x) else x for x in server_files]
 				results = [x for x in server_files if x.startswith(text)] + [None]
 			case 3:
-				current_path = self.get_cur_before().split(" ")[-1]
+				current_path = re.split(pattern, self.get_cur_before())[-1]
 				path = os.path.dirname(current_path) if os.path.dirname(current_path) else '.'
 				server_files = [os.path.basename(x) for x in os.listdir(path)]
 				server_files = [x + '/' if os.path.isdir(path + '/' + x) else x for x in server_files]

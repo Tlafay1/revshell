@@ -10,6 +10,7 @@ numpy==1.23.3
 packaging==21.3
 Pillow==9.2.0
 psutil==5.9.2
+PyAudio==0.2.12
 pyparsing==3.0.9
 python-dateutil==2.8.2
 six==1.16.0
