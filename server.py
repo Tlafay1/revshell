@@ -68,6 +68,7 @@ class Server:
 		ret = b''
 		while len(ret) < size:
 			ret += self.client_socket.recv(size)
+		print(f"Expected {size} bytes and received {len(ret)}")
 		return ret
 
 	def recv_bytes(self):

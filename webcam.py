@@ -17,7 +17,9 @@ class Webcam:
 	def receive(self):
 		while True:
 			frame_data = self.server.recv_bytes()
+			self.server.send("received")
 			frame = pickle.loads(frame_data)
+			# if plt.get_fignums():
 			plt.imshow(frame)
 			plt.show(block=False)
 			plt.pause(1 / 30)
@@ -36,10 +38,8 @@ class VideoStream:
 			frame = camera.get_next_data()
 			a = pickle.dumps(frame)
 			self.client.send_bytes(a)
-			# plt.imshow(frame)
-			# plt.show(block=False)
-			# plt.pause(delay)
-			# plt.close()
+			received = self.client.recv()
+			time.sleep(1 / 30)
 		camera.close()
 
 		# while(1):

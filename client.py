@@ -37,14 +37,15 @@ class Client:
 			Output.error("The shell might be unstable !")
 
 	def send_bytes(self, msg):
-		msg = msg
 		if len(str(len(msg))) > HEAD:
 			Output.error("Message too long.")
 			Output.error("The last message hasn't been sent")
 		try:
+			print(f"Sending {len(msg)} bytes")
 			self.send_header(len(msg))
 			self.s.sendall(msg)
 		except:
+			pass
 			Output.error("Failed to transfer data on socket.")
 			Output.error("The shell might be unstable !")
 
