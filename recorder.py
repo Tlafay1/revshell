@@ -38,6 +38,7 @@ class Player:
 				stream.write(data)
 		except KeyboardInterrupt:
 			self.server.send('STOP')
+			self.server.recv_bytes()
 
 		stream.stop_stream()
 		stream.close()

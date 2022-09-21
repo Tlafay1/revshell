@@ -41,7 +41,6 @@ class Client:
 			Output.error("Message too long.")
 			Output.error("The last message hasn't been sent")
 		try:
-			print(f"Sending {len(msg)} bytes")
 			self.send_header(len(msg))
 			self.s.sendall(msg)
 		except:

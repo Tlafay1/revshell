@@ -1,6 +1,7 @@
 import time
 import signal
 import sys
+from prompt import InteractivePrompt
 
 # The shell is still not that stable, i still have work to do.
 class Shell:
@@ -14,12 +15,11 @@ class Shell:
 			out = self.server.recv_raw(4096)
 			if cmd:
 				sys.stdout.write(out.replace(cmd, ''))
-			try:
-				cmd = input() + '\n'
-			except EOFError:
-				print("")
-				return
-			self.server.send_raw(cmd)
-			if cmd == 'exit\n':	
-				return
+			prompt = InteractivePrompt()
+			cmd = prompt.input("")
+			self.server.send_raw(cmd + '\n')
+			if not cmd or cmd == 'exit':	
+				break
 			time.sleep(0.01)
+
+		sys.stdout.write(self.server.recv_raw(4096))
