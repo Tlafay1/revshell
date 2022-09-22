@@ -1,7 +1,6 @@
 colorama==0.4.5
 contourpy==1.0.5
 cycler==0.11.0
-evdev==1.6.0
 fonttools==4.37.3
 imageio==2.22.0
 imageio-ffmpeg==0.4.7
@@ -13,7 +12,15 @@ Pillow==9.2.0
 psutil==5.9.2
 PyAudio==0.2.12
 pynput==1.7.6
+pyobjc-core==8.5.1
+pyobjc-framework-ApplicationServices==8.5.1
+pyobjc-framework-Cocoa==8.5.1
+pyobjc-framework-Quartz==8.5.1
+PyOpenGL==3.1.6
 pyparsing==3.0.9
+PySide2==5.15.2.1
 python-dateutil==2.8.2
-python-xlib==0.31
+shiboken2==5.15.2.1
 six==1.16.0
+tk==0.1.0
+visvis==1.13.0
