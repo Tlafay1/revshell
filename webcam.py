@@ -1,7 +1,6 @@
 import struct
 import pickle
 import imageio
-import matplotlib.pyplot as plt
 import time
 from outputs import Output
 import visvis as vv
