@@ -7,7 +7,6 @@ import signal
 import sys
 import os
 import re
-import readline
 
 def parse_command(command, server):
 	server.send(command)

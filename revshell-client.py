@@ -6,7 +6,6 @@ import sys
 import subprocess
 import platform
 import threading
-import pty
 import re
 
 # Supposed to be a stable bash shell, works

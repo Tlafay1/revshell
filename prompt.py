@@ -1,6 +1,12 @@
-import readline
 import os
 import re
+import platform
+
+if platform.system() == 'Windows':
+	from pyreadline3 import Readline
+	readline = Readline()
+else:
+	import readline
 
 class InteractivePrompt:
 
