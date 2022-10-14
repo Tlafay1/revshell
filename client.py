@@ -3,6 +3,7 @@ from outputs import Output
 
 HEAD = 64
 
+
 class Client:
 	def __init__(self, ip, port):
 		self.s = socket.socket()
@@ -17,7 +18,7 @@ class Client:
 		msg_size += b' ' * (HEAD - len(msg_size))
 		try:
 			self.s.sendall(msg_size)
-		except:
+		except socket.error:
 			Output.error("Failed to transfer data on socket.")
 			Output.error("The shell might be unstable !")
 
@@ -32,7 +33,7 @@ class Client:
 		try:
 			self.send_header(len(msg))
 			self.s.sendall(msg)
-		except:
+		except socket.error:
 			Output.error("Failed to transfer data on socket.")
 			Output.error("The shell might be unstable !")
 
@@ -43,7 +44,7 @@ class Client:
 		try:
 			self.send_header(len(msg))
 			self.s.sendall(msg)
-		except:
+		except socket.error:
 			pass
 			Output.error("Failed to transfer data on socket.")
 			Output.error("The shell might be unstable !")
@@ -53,7 +54,7 @@ class Client:
 		while len(ret) < size:
 			ret += self.s.recv(size)
 		return ret.decode()
-	
+
 	def recv(self):
 		msg_size = int(self.recvall(HEAD))
 		return self.recvall(msg_size)

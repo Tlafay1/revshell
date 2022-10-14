@@ -3,6 +3,7 @@ from prompt import InteractivePrompt
 from shell import Shell
 from transfer import FileTransfer
 from outputs import Output
+from screencast import Screencast
 import signal
 import sys
 import os

