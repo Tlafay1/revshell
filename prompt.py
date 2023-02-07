@@ -36,23 +36,23 @@ class InteractivePrompt:
 		pattern = r'(?<!\\) '
 		buff_len = len(re.split(pattern, self.get_cur_before()))
 
-		match buff_len:
-			case 0:
-				results = [x + " " for x in self.commands if x.startswith(text)] + [None]
-			case 1:
-				results = [x + " " for x in self.commands if x.startswith(text)] + [None]
-			case 2:
-				current_path = re.split(pattern, self.get_cur_before())[-1]
-				path = os.path.dirname(current_path) if os.path.dirname(current_path) else '.'
-				server_files = [os.path.basename(x) for x in os.listdir(path)]
-				server_files = [x + '/' if os.path.isdir(path + '/' + x) else x for x in server_files]
-				results = [x for x in server_files if x.startswith(text)] + [None]
-			case 3:
-				current_path = re.split(pattern, self.get_cur_before())[-1]
-				path = os.path.dirname(current_path) if os.path.dirname(current_path) else '.'
-				server_files = [os.path.basename(x) for x in os.listdir(path)]
-				server_files = [x + '/' if os.path.isdir(path + '/' + x) else x for x in server_files]
-				results = [x for x in server_files if x.startswith(text)] + [None]
-			case _:
-				return None
+		if buff_len == 0:
+			results = [x + " " for x in self.commands if x.startswith(text)] + [None]
+		elif buff_len == 1:
+			results = [x + " " for x in self.commands if x.startswith(text)] + [None]
+		elif buff_len == 2:
+			current_path = re.split(pattern, self.get_cur_before())[-1]
+			path = os.path.dirname(current_path) if os.path.dirname(current_path) else '.'
+			server_files = [os.path.basename(x) for x in os.listdir(path)]
+			server_files = [x + '/' if os.path.isdir(path + '/' + x) else x for x in server_files]
+			results = [x for x in server_files if x.startswith(text)] + [None]
+		elif buff_len == 3:
+			current_path = re.split(pattern, self.get_cur_before())[-1]
+			path = os.path.dirname(current_path) if os.path.dirname(current_path) else '.'
+			server_files = [os.path.basename(x) for x in os.listdir(path)]
+			server_files = [x + '/' if os.path.isdir(path + '/' + x) else x for x in server_files]
+			results = [x for x in server_files if x.startswith(text)] + [None]
+		else:
+			return None
+
 		return results[state]

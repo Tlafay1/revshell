@@ -8,17 +8,17 @@ class Download:
 		self.client = client
 
 	def get_size():
-        meta = urllib2.urlopen(url).info()
-        meta_func = meta.getheaders if hasattr(
-            meta, 'getheaders') else meta.get_all
-        meta_length = meta_func('Content-Length')
-        try:
-            return int(meta_length[0])
-        except:
-            return 0
+		meta = urllib2.urlopen(url).info()
+		meta_func = meta.getheaders if hasattr(
+			meta, 'getheaders') else meta.get_all
+		meta_length = meta_func('Content-Length')
+		try:
+			return int(meta_length[0])
+		except:
+			return 0
 
-    def kb_to_mb(kb):
-        return kb / 1024.0 / 1024.0
+	def kb_to_mb(kb):
+		return kb / 1024.0 / 1024.0
 
 	def progressbar(it, prefix="", size=60, out=sys.stdout): # Python3.3+
 		count = len(it)

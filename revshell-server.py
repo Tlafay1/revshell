@@ -24,6 +24,7 @@ def main_loop(server):
 		cmd = prompt.input("revshell> ")
 		if not cmd:
 			server.send('')
+			print()
 			return
 		cmd, args = parse_command(cmd, server)
 		if cmd == "shell":
